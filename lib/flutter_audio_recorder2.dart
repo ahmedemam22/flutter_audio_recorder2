@@ -7,7 +7,8 @@ import 'package:path/path.dart' as p;
 
 /// Audio Recorder Plugin
 class FlutterAudioRecorder2 {
-  static const MethodChannel _channel = const MethodChannel('flutter_audio_recorder2');
+  static const MethodChannel _channel = const MethodChannel(
+      'flutter_audio_recorder2');
   static const String DEFAULT_EXTENSION = '.m4a';
   static LocalFileSystem fs = LocalFileSystem();
 
@@ -17,12 +18,17 @@ class FlutterAudioRecorder2 {
   int? _sampleRate;
 
   Future? _initRecorder;
+
   Future? get initialized => _initRecorder;
+
   Recording? get recording => _recording;
 
-  FlutterAudioRecorder2(String path, {AudioFormat? audioFormat, int sampleRate = 16000}) {
+  FlutterAudioRecorder2(String path,
+      {AudioFormat? audioFormat, int sampleRate = 16000}) {
     _initRecorder = _init(path, audioFormat, sampleRate);
   }
+
+  Future init(path) async => await _init(path??_path, _stringToAudioFormat(_extension), _sampleRate??16000);
 
   /// Initialized recorder instance
   Future _init(String? path, AudioFormat? audioFormat, int sampleRate) async {
