@@ -1,5 +1,4 @@
 package com.example.flutter_audio_recorder2;
-import android.content.Intent;
 
 import android.Manifest;
 import android.app.Activity;
@@ -24,16 +23,18 @@ import java.util.Arrays;
 import java.util.HashMap;
 
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
+import io.flutter.embedding.engine.plugins.activity.ActivityAware;
+import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding;
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
 import io.flutter.plugin.common.MethodChannel.Result;
-import io.flutter.plugin.common.PluginRegistry;
-import io.flutter.plugin.common.PluginRegistry.ActivityResultListener;
 
 import android.content.Context;
 
-public class FlutterAudioRecorder2Plugin implements FlutterPlugin, MethodCallHandler, ActivityResultListener {
+/** FlutterAudioRecorder2Plugin */
+public class FlutterAudioRecorder2Plugin implements FlutterPlugin, MethodCallHandler, ActivityAware {
+
     private static final String LOG_NAME = "AndroidAudioRecorder";
     private static final int PERMISSIONS_REQUEST_RECORD_AUDIO = 200;
     private static final byte RECORDER_BPP = 16; // we use 16bit
@@ -60,35 +61,31 @@ public class FlutterAudioRecorder2Plugin implements FlutterPlugin, MethodCallHan
         channel.setMethodCallHandler(this);
     }
 
-    // New method to attach the activity context
-    @Override
-    public void onAttachedToActivity(@NonNull PluginRegistry.ActivityPluginBinding activityPluginBinding) {
-        activity = activityPluginBinding.getActivity();
-        activityPluginBinding.addActivityResultListener(this);
-    }
-
     @Override
     public void onDetachedFromEngine(@NonNull FlutterPluginBinding binding) {
         channel.setMethodCallHandler(null);
     }
 
+    // Implementing ActivityAware to handle Activity Plugin
     @Override
-    public void onDetachedFromActivityForConfigChanges() {
-        activity = null;
+    public void onAttachedToActivity(@NonNull ActivityPluginBinding activityPluginBinding) {
+        this.activity = activityPluginBinding.getActivity();
     }
 
     @Override
-    public void onReattachedToActivityForConfigChanges(@NonNull PluginRegistry.ActivityPluginBinding activityPluginBinding) {
-        activity = activityPluginBinding.getActivity();
+    public void onDetachedFromActivityForConfigChanges() {
+        this.activity = null;
+    }
+
+    @Override
+    public void onReattachedToActivityForConfigChanges(@NonNull ActivityPluginBinding activityPluginBinding) {
+        this.activity = activityPluginBinding.getActivity();
     }
 
     @Override
     public void onDetachedFromActivity() {
-        activity = null;
+        this.activity = null;
     }
-
-
-    
 
     @Override
     public void onMethodCall(MethodCall call, Result result) {
