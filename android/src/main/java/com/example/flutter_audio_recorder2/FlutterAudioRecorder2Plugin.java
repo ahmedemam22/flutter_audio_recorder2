@@ -1,6 +1,7 @@
 package com.example.flutter_audio_recorder2;
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.pm.PackageManager;
 import android.media.AudioFormat;
 import android.media.AudioRecord;
@@ -26,11 +27,12 @@ import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
 import io.flutter.plugin.common.MethodChannel.Result;
+import io.flutter.plugin.common.PluginRegistry;
+import io.flutter.plugin.common.PluginRegistry.ActivityResultListener;
 
 import android.content.Context;
 
-public class FlutterAudioRecorder2Plugin implements FlutterPlugin, MethodCallHandler {
-
+public class FlutterAudioRecorder2Plugin implements FlutterPlugin, MethodCallHandler, ActivityResultListener {
     private static final String LOG_NAME = "AndroidAudioRecorder";
     private static final int PERMISSIONS_REQUEST_RECORD_AUDIO = 200;
     private static final byte RECORDER_BPP = 16; // we use 16bit
@@ -48,6 +50,7 @@ public class FlutterAudioRecorder2Plugin implements FlutterPlugin, MethodCallHan
     private Result _result;
     private MethodChannel channel;
     private Context context;
+    private Activity activity;
 
     @Override
     public void onAttachedToEngine(@NonNull FlutterPluginBinding flutterPluginBinding) {
@@ -56,9 +59,36 @@ public class FlutterAudioRecorder2Plugin implements FlutterPlugin, MethodCallHan
         channel.setMethodCallHandler(this);
     }
 
+    // New method to attach the activity context
+    @Override
+    public void onAttachedToActivity(@NonNull PluginRegistry.ActivityPluginBinding activityPluginBinding) {
+        activity = activityPluginBinding.getActivity();
+        activityPluginBinding.addActivityResultListener(this);
+    }
+
     @Override
     public void onDetachedFromEngine(@NonNull FlutterPluginBinding binding) {
         channel.setMethodCallHandler(null);
+    }
+
+    @Override
+    public void onDetachedFromActivityForConfigChanges() {
+        activity = null;
+    }
+
+    @Override
+    public void onReattachedToActivityForConfigChanges(@NonNull PluginRegistry.ActivityPluginBinding activityPluginBinding) {
+        activity = activityPluginBinding.getActivity();
+    }
+
+    @Override
+    public void onDetachedFromActivity() {
+        activity = null;
+    }
+
+    @Override
+    public boolean onActivityResult(int requestCode, int resultCode, Intent data) {
+        return false;
     }
 
     @Override
@@ -100,10 +130,10 @@ public class FlutterAudioRecorder2Plugin implements FlutterPlugin, MethodCallHan
         } else {
             Log.d(LOG_NAME, "handleHasPermission false");
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                ActivityCompat.requestPermissions(null, new String[]{Manifest.permission.RECORD_AUDIO, Manifest.permission.WRITE_EXTERNAL_STORAGE}, PERMISSIONS_REQUEST_RECORD_AUDIO);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && activity != null) {
+                ActivityCompat.requestPermissions(activity, new String[]{Manifest.permission.RECORD_AUDIO, Manifest.permission.WRITE_EXTERNAL_STORAGE}, PERMISSIONS_REQUEST_RECORD_AUDIO);
             } else {
-                ActivityCompat.requestPermissions(null, new String[]{Manifest.permission.RECORD_AUDIO}, PERMISSIONS_REQUEST_RECORD_AUDIO);
+                _result.success(false);
             }
         }
     }
