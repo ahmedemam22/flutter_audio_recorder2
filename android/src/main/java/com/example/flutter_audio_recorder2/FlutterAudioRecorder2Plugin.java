@@ -1,4 +1,5 @@
 package com.example.flutter_audio_recorder2;
+import android.content.Intent;
 
 import android.Manifest;
 import android.app.Activity;
@@ -86,10 +87,8 @@ public class FlutterAudioRecorder2Plugin implements FlutterPlugin, MethodCallHan
         activity = null;
     }
 
-    @Override
-    public boolean onActivityResult(int requestCode, int resultCode, Intent data) {
-        return false;
-    }
+
+    
 
     @Override
     public void onMethodCall(MethodCall call, Result result) {
